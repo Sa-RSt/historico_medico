@@ -4,6 +4,7 @@ from fastapi.staticfiles import StaticFiles
 from pathlib import Path
 import mariadb
 import logging
+import string
 from pydantic import BaseModel
 
 
@@ -25,14 +26,24 @@ BASE_DIRECTORY = Path(__file__).parent
 app.mount('/static', StaticFiles(directory=BASE_DIRECTORY / 'static'), name='static')
 logging.basicConfig(level=logging.INFO)
 log = logging.getLogger('historico_medico')
+LEGAL_PAGE_NAME_CHARS = string.ascii_letters + string.digits + '-_'
 
-@app.get('/')
+@app.get('/', response_class=HTMLResponse)
 def index():
+    '''Acessa a página index.'''
     return HTMLResponse((BASE_DIRECTORY / 'index.html').read_text())
 
+@app.get('/{path}', response_class=HTMLResponse)
+def page(path):
+    f'''Acessa uma página HTML. Os caracteres permitidos no nome da página são: {LEGAL_PAGE_NAME_CHARS}'''
+    filtered_path = (BASE_DIRECTORY / ''.join(x for x in path if x in LEGAL_PAGE_NAME_CHARS)).with_suffix('.html')
+    if not filtered_path.exists():
+        return HTMLResponse('<h1>404 not found</h1>', 404)
+    return HTMLResponse(filtered_path.read_text())
 
 @app.get('/api/medicos')
 def medicos() -> ResultadoConsulta:
+    '''Lista todos os médicos.'''
     try:
         conn = mariadb.connect(
             user="app",
