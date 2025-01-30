@@ -6,6 +6,7 @@ import mariadb
 import logging
 import string
 from pydantic import BaseModel
+import json
 
 class Profissional(BaseModel):
     id: int
@@ -20,6 +21,9 @@ class ResultadoConsulta(BaseModel):
     resultado: list[Profissional] | None
 
 
+with open('config.json', 'r') as file:
+    CONFIG = json.load(file)
+
 app = FastAPI()
 BASE_DIRECTORY = Path(__file__).parent
 PUBLIC_DIRECTORY = BASE_DIRECTORY / 'public'
@@ -33,13 +37,7 @@ LEGAL_PAGE_NAME_CHARS = string.ascii_letters + string.digits + '-_'
 def medicos() -> ResultadoConsulta:
     '''Lista todos os médicos.'''
     try:
-        conn = mariadb.connect(
-            user="app",
-            password="123456",
-            host="localhost",
-            port=3306,
-            database="historico_medico"
-        )
+        conn = mariadb.connect(**CONFIG['db_server'])
     except Exception as e:
         log.exception(e)
         return ResultadoConsulta(erro='falha ao conectar ao banco de dados', resultado=None)
