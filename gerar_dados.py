@@ -6,6 +6,30 @@ fake = Faker('pt-BR')
 fake.seed_instance(0)
 rng = Random(0)
 
+nomes_tabelas = ['Paciente',
+ 'Parente',
+ 'Cirurgia',
+ 'Alergia',
+ 'AlergiaPaciente',
+ 'Especialidade',
+ 'ProfissionalSaude',
+ 'ProfissionalParticipanteCirurgia',
+ 'Consulta',
+ 'Diagnostico',
+ 'Vacina',
+ 'Vacinou',
+ 'Remedio',
+ 'NomeComercialRemedio',
+ 'Medicacao',
+ 'Exame',
+ 'Arquivo',
+ 'ArquivoExameImagem',
+ 'Variavel',
+ 'VariavelExameQuantitativo',
+ 'Dispositivo',
+ 'AcessoBD',
+ 'RegistroAcesso']
+
 estados = [
     'AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF',
     'ES', 'GO', 'MA', 'MT', 'MS', 'MG', 'PA',
@@ -33,6 +57,11 @@ profissoes = [
 
 def crm():
     return 'CRM/' + rng.choice(estados) + ' ' + str(rng.randint(0, 999999)).zfill(6)
+
+print('SET @@session.foreign_key_checks=0;')
+for tabl in nomes_tabelas[::-1]:
+    print(f'DELETE FROM {tabl};')
+print('SET @@session.foreign_key_checks=1;')
 
 print('INSERT INTO ProfissionalSaude')
 print('(CodProfissional, CRM, NomeSocial, NomeCivil, Profissao)')
@@ -109,7 +138,7 @@ print(f'''
     (0, {rng.randrange(quantidade_pacientes)}, 'Exérese de calázio', '{fake.past_datetime().isoformat()}', 10, NULL, 3),
     (1, {rng.randrange(quantidade_pacientes)}, 'Extração do siso', '{fake.past_datetime().isoformat()}', 40, NULL, 13),
     (2, {rng.randrange(quantidade_pacientes)}, 'Radiocirurgia estereotáxica para cavernoma', '{fake.past_datetime().isoformat()}', 40, NULL, 9),
-    (3, {rng.randrange(quantidade_pacientes)}, 'Angioplastia coronária para infarto', '{fake.past_datetime().isoformat()}', 70, 'Reestenose coronariana', 16),
+    (3, {rng.randrange(quantidade_pacientes)}, 'Angioplastia coronária para infarto', '{fake.past_datetime().isoformat()}', 70, 'Reestenose coronariana', 16);
 ''')
 
 
@@ -158,7 +187,7 @@ especialidades = [
 print('INSERT INTO Especialidade')
 print('(CodEsp, CodProfissional, Desc_)')
 print('VALUES')
-print(',\n'.join(f'({i}, {rng.randrange(0, quantidade_profissionais_saude)}, {rng.choice(especialidades)})' for i in range(quantidade_profissionais_saude*3//2)) + ';')
+print(',\n'.join(f'({i}, {rng.randrange(0, quantidade_profissionais_saude)}, {repr(rng.choice(especialidades))})' for i in range(quantidade_profissionais_saude*3//2)) + ';')
 
 
 print('INSERT INTO ProfissionalParticipanteCirurgia')
@@ -167,10 +196,19 @@ print('VALUES')
 print(',\n'.join(f'({i}, {rng.randrange(0, 4)}, {rng.randrange(0, quantidade_pacientes)}, {rng.randrange(0, quantidade_profissionais_saude)})' for i in range(6) )+ ';')
 
 
+consultas_pacientes = []
+
+
+def par_consulta_paciente(i):
+    a = rng.randrange(quantidade_pacientes)
+    consultas_pacientes.append((i, a))
+    return a
+
+quantidade_consultas  =2*quantidade_pacientes
 print('INSERT INTO Consulta')
 print('(CodConsulta, CodProfissional, CodPaciente, DataHora, Motivo)')
 print('VALUES')
-print(',\n'.join(f'({i}, {rng.randrange(0, quantidade_profissionais_saude)}, {rng.randrange(0, quantidade_pacientes)}, {repr(fake.past_datetime().isoformat())}, {repr(fake.text())})' for i in range(2*quantidade_pacientes)) + ';')
+print(',\n'.join(f'({i}, {rng.randrange(0, quantidade_profissionais_saude)}, {par_consulta_paciente(i)}, {repr(fake.past_datetime().isoformat())}, {repr(fake.text())})' for i in range(2*quantidade_pacientes)) + ';')
 
 
 def cid():
@@ -182,7 +220,7 @@ def cid():
 print('INSERT INTO Diagnostico')
 print('(CodDiagnostico, CodConsulta, CID)')
 print('VALUES')
-print(',\n'.join(f'({i}, {rng.randrange(0, 2*quantidade_pacientes)}, {repr(cid())}, {repr(fake.past_datetime().isoformat())})' for i in range(2*quantidade_pacientes) )+ ';')
+print(',\n'.join(f'({i}, {rng.randrange(0, 2*quantidade_pacientes)}, {repr(cid())})' for i in range(2*quantidade_pacientes) )+ ';')
 
 
 marcas_vacina = [
@@ -193,7 +231,7 @@ marcas_vacina = [
     'BioNTech'
 ]
 
-nomes_vacina = ['DTP: difteria, tétano e coqueluche                                                                                                                                                                          [0/134]',
+nomes_vacina = ['DTP: difteria, tétano e coqueluche',
  'HiB: Haemophilus influenzae tipo b  ',
  'VIP: poliomielite inativada  ',
  'VOP: poliomielite oral  ',
@@ -247,7 +285,7 @@ quantidade_vacinas = 20
 print('INSERT INTO Vacina')
 print('(CodVacina, CID, Marca, Nome)')
 print('VALUES')
-print(',\n'.join(f'({i}, {repr(cid())}, {repr(rng.choice(marcas_vacina))}, {repr(rng.choice(nomes_vacina))}, {repr(fake.past_datetime().isoformat())})' for i in range(quantidade_vacinas) )+ ';')
+print(',\n'.join(f'({i}, {repr(cid())}, {repr(rng.choice(marcas_vacina))}, {repr(rng.choice(nomes_vacina).strip())})' for i in range(quantidade_vacinas) )+ ';')
 
 
 print('INSERT INTO Vacinou')
@@ -468,8 +506,7 @@ nomes_comerciais = [['Tylenol',
   'Ansiopax',
   'Diazepax',
   'Diazera',
-  'Pacif',
-  'Observação: Esta lista pode variar conforme a localização e as regulamentações de saúde locais. Para informações precisas e atualizadas, consulte fontes oficiais ou farmacêuticas.'],
+  'Pacif'],
  ['Androcur', 'Diane 35', 'Cyprostat', 'Cyproplex', 'Proviron'],
  ['Flixonase',
   'Flonase',
@@ -503,7 +540,7 @@ print('INSERT INTO NomeComercialRemedio')
 print('(CodNomeCom, CodRemedio, NomeComercial)')
 print('VALUES')
 for i, nc in enumerate(nomes_comerciais):
-    if i == len(nc) - 1:
+    if i == len(nomes_comerciais) - 1:
         end = ';'
     else:
         end = ',\n'
@@ -527,7 +564,7 @@ dosagens = produto_cartesiano(
     ['1/4 cp', '1/2 cp', '1 cp', '2 cp', '3 cp', '4 cp', '6 cp', '1 gota', '5 gotas', '10 gotas', '30 gotas', '12 gotas'],
     ['', ' sublingual'],
     [' todos os dias', ' em dias alternados', ' semanalmente', ' a cada três dias'],
-    [' após as refeições', ' antes de dormir', ' depois do almoço', ' de 6 em 6h', 'de 8 em 8h']
+    [' após as refeições', ' antes de dormir', ' depois do almoço', ' de 6 em 6h', ' de 8 em 8h']
 )
 
 
@@ -539,6 +576,7 @@ for id in range(50):
     am = rng.random() < .5
     if am:
         out.append(f'({id}, {rng.randrange(len(principios_ativos))}, {rng.randrange(quantidade_pacientes)}, NULL, {repr(fake.past_date().isoformat())}, {repr(rng.choice(dosagens))})')
+print(',\n'.join(out) + ';\n')
 
 vars_exames_quant = [('Hemoglobina', '13.8-17.2 g/dL (homens), 12.1-15.1 g/dL (mulheres)'),
  ('Hematócrito', '40.7-50.3% (homens), 36.1-44.3% (mulheres)'),
@@ -655,33 +693,40 @@ for i in range(20):
             for m in range(rng.randint(1, 4)):
                 arqid = len(arquivos)
                 ta = rng.choice(tipos_arquivo)
-                arquivos.append(f'({arqid}, {repr("exame-{}-.{}".format(arqid, ta.lower()))}, {repr(ta)}, "teste")')
+                arquivos.append(f'({arqid}, {repr("exame-{}.{}".format(arqid, ta.lower()))}, {repr(ta)}, "teste")')
                 arquivoexameimagem.append(f'({arqid}, {i}, {m})')
     else:
         esp = rng.choice([0,1, 2])
-        cons = rng.randrange(2*quantidade_pacientes)
+        cons = rng.randrange(quantidade_consultas)
+        pac = rng.choice([p for c, p in consultas_pacientes if c == cons])
         
         if esp == 2:
-            e = f'({i}, NULL, {cons}, {esp}, {repr(fake.past_datetime().isoformat())}, "Exame de Sangue", {repr(fake.text())}, {repr(rng.choice(cond_coop))}, NULL, NULL)'
+            e = f'({i}, {pac}, {cons}, {esp}, {repr(fake.past_datetime().isoformat())}, "Exame de Sangue", {repr(fake.text())}, {repr(rng.choice(cond_coop))}, NULL, NULL)'
             for j in range(rng.randrange(20)):
                 v = rng.randrange(len(vars_exames_quant))
                 veq = f'({v}, {i}, {j}, {rng.random() * 100}, {rng.choice(metodos_analise)})'
                 exames_vars.append(veq)
         elif esp == 0:
             tipo = rng.choice(tipos_ex_imagem)
-            e = f'({i}, NULL, {cons}, {esp}, {repr(fake.past_datetime().isoformat())}, {repr(tipo)}, {repr(fake.text())}, {repr(rng.choice(cond_coop))}, {repr(rng.choice(orgaos))}, NULL)'
+            e = f'({i}, {pac}, {cons}, {esp}, {repr(fake.past_datetime().isoformat())}, {repr(tipo)}, {repr(fake.text())}, {repr(rng.choice(cond_coop))}, {repr(rng.choice(orgaos))}, NULL)'
             for m in range(rng.randint(1, 4)):
                 arqid = len(arquivos)
                 ta = rng.choice(tipos_arquivo)
-                arquivos.append(f'({arqid}, {repr("exame-{}-.{}".format(arqid, ta.lower()))}, {repr(ta)}, "teste")')
+                arquivos.append(f'({arqid}, {repr("exame-{}.{}".format(arqid, ta.lower()))}, {repr(ta)}, "teste")')
                 arquivoexameimagem.append(f'({arqid}, {i}, {m})')
         else:
             tipo = 'Laudo'
             arqid = len(arquivos)
             ta = rng.choice(['PDF', 'RTF'])
-            arquivos.append(f'({arqid}, {repr("laudo-{}-.{}".format(arqid, ta.lower()))}, {repr(ta)}, "teste")')
-            e = f'({i}, NULL, {cons}, {esp}, {repr(fake.past_datetime().isoformat())}, {repr(tipo)}, {repr(fake.text())}, "OK", NULL, {arqid})'
+            arquivos.append(f'({arqid}, {repr("laudo-{}.{}".format(arqid, ta.lower()))}, {repr(ta)}, "teste")')
+            e = f'({i}, {pac}, {cons}, {esp}, {repr(fake.past_datetime().isoformat())}, {repr(tipo)}, {repr(fake.text())}, "OK", NULL, {arqid})'
     exames.append(e)
+
+
+print('INSERT INTO Arquivo')
+print('(CodArquivo, Nome, Tipo, Conteudo)')
+print('VALUES')
+print(',\n'.join(arquivos) + ';\n')
 
 
 print('INSERT INTO Exame')
@@ -689,10 +734,6 @@ print('(CodExame, CodPaciente, CodConsulta_Prescricao, TipoEspecializacao, DataH
 print('VALUES')
 print(',\n'.join(exames) + ';\n')
 
-print('INSERT INTO Arquivo')
-print('(CodArquivo, Nome, Tipo, Conteudo)')
-print('VALUES')
-print(',\n'.join(arquivos) + ';\n')
 
 print('INSERT INTO ArquivoExameImagem')
 print('(CodArquivo, CodExame, CodAEI)')
@@ -732,33 +773,6 @@ print('INSERT INTO AcessoBD')
 print('(CodAcesso, CodProfissional, CodDispositivo, NivelAutorizacao, NomeUsuario, Senha)')
 print('VALUES')
 print(',\n'.join((f'({i}, {rng.randrange(quantidade_profissionais_saude)}, {rng.randrange(13)}, {repr(rng.choice(niveis_aut))}, {repr(fake.user_name())}, {repr(fake.password())})' for i in range(13)) )+ ';\n')
-
-
-
-nomes_tabelas = ['Paciente',
- 'Parente',
- 'Cirurgia',
- 'Alergia',
- 'AlergiaPaciente',
- 'Especialidade',
- 'ProfissionalSaude',
- 'ProfissionalParticipanteCirurgia',
- 'Consulta',
- 'Diagnostico',
- 'Vacina',
- 'Vacinou',
- 'Remedio',
- 'NomeComercialRemedio',
- 'Medicacao',
- 'Exame',
- 'Arquivo',
- 'ArquivoExameImagem',
- 'Variavel',
- 'VariavelExameQuantitativo',
- 'Dispositivo',
- 'AcessoBD',
- 'RegistroAcesso']
-
 
 def rngtabelas():
     return ', '.join(rng.choices(nomes_tabelas, k=rng.randrange(1, 5)))
