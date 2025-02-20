@@ -1,5 +1,5 @@
 CREATE TABLE
-    Paciente (CodPaciente INT, Etnia VARCHAR(1024), Genero VARCHAR(1024), TipoSanquineo VARCHAR(1024) NOT NULL, DataNasc TIMESTAMP, Religiao VARCHAR(1024), CPF CHAR(11) NOT NULL, RG VARCHAR(1024) NOT NULL, telefone VARCHAR(1024), Endereco VARCHAR(1024), Email VARCHAR(1024), NomeSocial VARCHAR(1024), NomeCivil VARCHAR(1024) NOT NULL, PRIMARY KEY (CodPaciente));
+    Paciente (CodPaciente INT, Etnia VARCHAR(1024), Genero VARCHAR(1024), TipoSanguineo VARCHAR(1024) NOT NULL, DataNasc TIMESTAMP, Religiao VARCHAR(1024), CPF CHAR(11) NOT NULL, RG VARCHAR(1024) NOT NULL, telefone VARCHAR(1024), Endereco VARCHAR(1024), Email VARCHAR(1024), NomeSocial VARCHAR(1024), NomeCivil VARCHAR(1024) NOT NULL, PRIMARY KEY (CodPaciente));
 
 CREATE TABLE
     Parente (CodParente INT, CodPai INT, CodFilho INT, PRIMARY KEY (CodParente, CodFilho, CodPai), FOREIGN KEY (CodFilho) REFERENCES Paciente (CodPaciente), FOREIGN KEY (CodPai) REFERENCES Paciente (CodPaciente));
