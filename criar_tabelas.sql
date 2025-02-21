@@ -11,7 +11,7 @@ CREATE TABLE
     Alergia (CodAlergia INT, Alergenico VARCHAR(1024), PRIMARY KEY (CodAlergia));
 
 CREATE TABLE
-    AlergiaPaciente (CodAlergiaPaciente INT, CodAlergia INT, CodPaciente INT, Desc_ VARCHAR(1024), PRIMARY KEY (CodAlergiaPaciente, CodAlergia, CodPaciente), FOREIGN KEY (CodAlergia) REFERENCES Alergia (CodAlergia), FOREIGN KEY (CodPaciente) REFERENCES Paciente (CodPaciente));
+    AlergiaPaciente (CodAlergiaPaciente INT, CodAlergia INT, CodPaciente INT, PRIMARY KEY (CodAlergiaPaciente, CodAlergia, CodPaciente), FOREIGN KEY (CodAlergia) REFERENCES Alergia (CodAlergia), FOREIGN KEY (CodPaciente) REFERENCES Paciente (CodPaciente));
 
 CREATE TABLE
     ProfissionalSaude (CodProfissional INT, CRM CHAR(13), NomeSocial VARCHAR(1024), NomeCivil VARCHAR(1024) NOT NULL, Profissao VARCHAR(1024) NOT NULL, PRIMARY KEY (CodProfissional));

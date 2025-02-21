@@ -55,7 +55,16 @@ def medicos() -> ResultadoConsulta:
     return ResultadoConsulta(erro=None, resultado=result_set)
 
 
-@app.get('/{remaining:path}', response_class=HTMLResponse)
-def page(remaining: str):
+@app.get('/', response_class=HTMLResponse)
+def index():
     f'''Acessa a página index.'''
     return HTMLResponse((PUBLIC_DIRECTORY / 'index.html').read_text())
+
+
+@app.get('/{p:path}', response_class=HTMLResponse)
+def page(p):
+    f'''Acessa uma página.'''
+    try:
+        return HTMLResponse((PUBLIC_DIRECTORY / p).with_suffix('.html').read_text())
+    except OSError:
+        return HTMLResponse('', 404)

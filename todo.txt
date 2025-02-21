@@ -1,6 +1,0 @@
- - tirar descrição da alergia
- - tirar relevancia do diagnóstico
- - tirar veículo e marca da medicação
- - trocar tipoespecializacao em exame por int (0 = imagem, 1 = laudo, 2 = quantitativo)
- - mudar conteudo do arquivo pra longblob
- - valor das variáveis nos exames quantitativos é float, não int
