@@ -104,7 +104,7 @@ print('SET @@session.foreign_key_checks=1;')
 print('INSERT INTO ProfissionalSaude')
 print('(CodProfissional, CRM, NomeSocial, NomeCivil, Profissao)')
 print('VALUES')
-quantidade_profissionais_saude = 30
+quantidade_profissionais_saude = 10
 for i in range(quantidade_profissionais_saude):
     prof, c = rng.choice(profissoes)
     credencial = f"'{crm()}'" if c else 'NULL'
@@ -150,7 +150,7 @@ religioes = [
 print('INSERT INTO Paciente')
 print('(CodPaciente, Etnia, Genero, TipoSanguineo, DataNasc, Religiao, CPF, RG, telefone, Endereco, Email, NomeSocial, NomeCivil)')
 print('VALUES')
-quantidade_pacientes = 100
+quantidade_pacientes = 10
 out = []
 for i in range(quantidade_pacientes):
     nome_social = f"'{fake_name()}'" if rng.randint(1, 6) == 6 else 'NULL'
@@ -165,13 +165,14 @@ print(',\n'.join(out), end=';\n')
 print('INSERT INTO Parente')
 print('(CodParente, CodPai, CodFilho)')
 print('VALUES')
-quantidade_parentescos = 20
+quantidade_parentescos = 5
 out = []
 for i in range(quantidade_parentescos):
     pai = rng.randrange(quantidade_pacientes)
     filho = rng.randrange(quantidade_pacientes)
     while filho == pai:
-        rng.randrange(quantidade_pacientes)
+        pai = rng.randrange(quantidade_pacientes)
+        filho = rng.randrange(quantidade_pacientes)
     out.append(f'({i}, {pai}, {filho})')
 print(',\n'.join(out), end=';\n')
 
@@ -329,7 +330,7 @@ nomes_vacina = ['DTP: difteria, tétano e coqueluche',
                 'Tifóide: polissacarídeo Vi']
 
 
-quantidade_vacinas = 20
+quantidade_vacinas = 10
 
 print('INSERT INTO Vacina')
 print('(CodVacina, CID, Marca, Nome)')
@@ -600,7 +601,7 @@ for i, nc in enumerate(nomes_comerciais):
     else:
         end = ',\n'
     print(',\n'.join(f'({j}, {i}, {repr(nome)})' for j,
-          nome in enumerate(nc)), end=end)
+          nome in enumerate(rng.choices(nc, k=rng.randint(1, 2)))), end=end)
 
 
 def produto_cartesiano(*listas):
@@ -631,7 +632,7 @@ print('INSERT INTO Medicacao')
 print('(CodMedicacao, CodRemedio, CodPaciente_Automedicacao, CodConsulta, Data_, Dose)')
 print('VALUES')
 out = []
-for id in range(50):
+for id in range(10):
     am = rng.random() < .5
     if am:
         out.append(f'({id}, {rng.randrange(len(principios_ativos))}, {rng.randrange(quantidade_pacientes)}, NULL, {repr(fake.past_date().isoformat())}, {repr(rng.choice(dosagens))})')
@@ -736,14 +737,14 @@ exames = []
 exames_vars = []
 arquivoexameimagem = []
 
-for i in range(20):
+for i in range(10):
     am = rng.random() < .3
     if am:
         esp = rng.choice([0, 2])
 
         if esp == 2:
             e = f'({i}, {rng.randrange(quantidade_pacientes)}, NULL, {esp}, {repr(fake.past_datetime().isoformat())}, "Exame de Sangue", {repr(fake.text())}, "OK", NULL, NULL)'
-            for j in range(rng.randrange(20)):
+            for j in range(rng.randrange(3, 6)):
                 v = rng.randrange(len(vars_exames_quant))
                 veq = f'({v}, {i}, {j}, {rng.random() * 100}, {rng.choice(metodos_analise)})'
                 exames_vars.append(veq)
@@ -763,7 +764,7 @@ for i in range(20):
 
         if esp == 2:
             e = f'({i}, {pac}, {cons}, {esp}, {repr(fake.past_datetime().isoformat())}, "Exame de Sangue", {repr(fake.text())}, {repr(rng.choice(cond_coop))}, NULL, NULL)'
-            for j in range(rng.randrange(20)):
+            for j in range(rng.randrange(3, 6)):
                 v = rng.randrange(len(vars_exames_quant))
                 veq = f'({v}, {i}, {j}, {rng.random() * 100}, {rng.choice(metodos_analise)})'
                 exames_vars.append(veq)
@@ -804,6 +805,12 @@ print('VALUES')
 print(',\n'.join(arquivoexameimagem) + ';\n')
 
 
+print('INSERT INTO VariavelExameQuantitativo')
+print('(CodVariavel, CodExame, CodVEQ, Valor, MetodoAnalise)')
+print('VALUES')
+print(',\n'.join(exames_vars) + ';\n')
+
+
 def stringAleatoria(n):
     from string import ascii_letters, digits
     pool = ascii_letters + digits
@@ -825,7 +832,7 @@ print('INSERT INTO Dispositivo')
 print('(CodDispositivo, ChaveSeguranca, Tipo)')
 print('VALUES')
 print(',\n'.join(
-    (f'({i}, {repr(stringAleatoria(32))}, {repr(rng.choice(tipos_dispo))})' for i in range(13))) + ';\n')
+    (f'({i}, {repr(stringAleatoria(32))}, {repr(rng.choice(tipos_dispo))})' for i in range(7))) + ';\n')
 
 
 niveis_aut = [
@@ -837,7 +844,7 @@ niveis_aut = [
 print('INSERT INTO AcessoBD')
 print('(CodAcesso, CodProfissional, CodDispositivo, NivelAutorizacao, NomeUsuario, Senha)')
 print('VALUES')
-print(',\n'.join((f'({i}, {rng.randrange(quantidade_profissionais_saude)}, {rng.randrange(13)}, {repr(rng.choice(niveis_aut))}, {repr(fake.user_name())}, {repr(fake.password())})' for i in range(13))) + ';\n')
+print(',\n'.join((f'({i}, {rng.randrange(quantidade_profissionais_saude)}, {rng.randrange(7)}, {repr(rng.choice(niveis_aut))}, {repr(fake.user_name())}, {repr(fake.password())})' for i in range(7))) + ';\n')
 
 
 def rngtabelas():
@@ -847,4 +854,4 @@ def rngtabelas():
 print('INSERT INTO RegistroAcesso')
 print('(CodRegistroAcesso, CodAcesso, CodProfissional, CodDispositivo, CodPaciente, DataHora, CRUouD, Tabelas, CodigoRegistroAfetado)')
 print('VALUES')
-print(',\n'.join((f'({i}, {rng.randrange(13)}, {rng.randrange(quantidade_profissionais_saude)}, {rng.randrange(13)}, {rng.randrange(quantidade_pacientes)}, {repr(fake.past_datetime().isoformat())}, {repr(rng.choice("CRUD"))}, {repr(rngtabelas())}, {rng.randrange(5)})' for i in range(20))) + ';\n')
+print(',\n'.join((f'({i}, {rng.randrange(7)}, {rng.randrange(quantidade_profissionais_saude)}, {rng.randrange(7)}, {rng.randrange(quantidade_pacientes)}, {repr(fake.past_datetime().isoformat())}, {repr(rng.choice("CRUD"))}, {repr(rngtabelas())}, {rng.randrange(5)})' for i in range(10))) + ';\n')
